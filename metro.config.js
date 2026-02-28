@@ -1,15 +1,23 @@
+const path = require('path');
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
 
-const config = getDefaultConfig(__dirname);
+// プロジェクトのルートディレクトリを取得
+const projectRoot = __dirname;
+const config = getDefaultConfig(projectRoot);
 
-// pnpmのシンボリックリンクとパッケージエクスポートを有効化（エラー解決の鍵）
+// 1. pnpmの構造を正しく読み込ませる設定
 config.resolver.unstable_enableSymlinks = true;
 config.resolver.unstable_enablePackageExports = true;
 
+// 2. 重要：エラーの出ている node_modules 内のキャッシュも監視対象に加える
+config.watchFolders = [
+  projectRoot,
+  path.resolve(projectRoot, "node_modules"),
+];
+
 module.exports = withNativeWind(config, {
   input: "./global.css",
-  // Force write CSS to file system instead of virtual modules
-  // This fixes iOS styling issues in development mode
-  forceWriteFileSystem: true,
+  // Vercel(Web)ではファイル書き出しによる競合を避けるため false にしてみます
+  forceWriteFileSystem: false, 
 });
